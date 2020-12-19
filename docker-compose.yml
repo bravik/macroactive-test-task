@@ -1,0 +1,36 @@
+version: "3.7"
+
+networks:
+  macroactive:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.220.0/28
+
+services:
+  macroactive_nginx:
+    image: nginx:stable-alpine
+    restart: always
+    volumes:
+      - "./docker/nginx/logs:/var/log/nginx"
+      - "./docker/nginx/config/dev.conf:/etc/nginx/conf.d/default.conf"
+    networks:
+      - macroactive
+    ports:
+      - "80:80"
+    depends_on:
+      - macroactive_backend
+
+  macroactive_backend:
+    image: macroactive_backend
+    build:
+      context: .
+      dockerfile: docker/backend.dev.dockerfile
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - .:/app
+    networks:
+      - macroactive
